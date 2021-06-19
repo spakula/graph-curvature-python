@@ -56,6 +56,10 @@ def Wasserstein_get_linprog_params(metric, m1, m2):
     return (m,A.todense(),c,(Aeq.todense() if Aeq is not None else None))
 
 
+# compute the Wasserstein W₁ distance between measures m1 and m2
+# metric is the path metric on the graph
+# (Wasserstein distance only depends on the distances between the
+#  points in the supports of m1 and m2)
 def Wasserstein(metric, m1, m2):
     (m,A,c,Aeq) = Wasserstein_get_linprog_params(metric, m1, m2)
     # print(m,A,c,Aeq)
@@ -64,6 +68,10 @@ def Wasserstein(metric, m1, m2):
     return -res.fun
 
 
+# compute the Ollivier-Ricci curvature between all pairs of
+# (different) vertices
+# (not a sparse matrix)
+# (diagonal entries are left to be 0)
 def OR_get_full_curvature_matrix(G, p=0):
     metric = dict(nx.all_pairs_shortest_path_length(G))
 
@@ -79,6 +87,9 @@ def OR_get_full_curvature_matrix(G, p=0):
     return cv
 
 
+# compute the Ollivier-Ricci curvature between all pairs of
+# adjacent vertices
+# (returns a sparse matrix)
 def OR_get_edge_curvature_matrix(G, p=0):
     metric = dict(nx.all_pairs_shortest_path_length(G))
 
@@ -94,7 +105,11 @@ def OR_get_edge_curvature_matrix(G, p=0):
     return spsp.csr_matrix((data,(row_ind,col_ind)),shape=(len(G.nodes),len(G.nodes)))
 
 
-def is_pos_def(A, semi=True):              # real matrices only
+# check if the matrix A is positive (semi-)definite
+# real matrices only
+# (attempts cholesky, which bails when the matrix is not >=0)
+# (for semidefiniteness, we add a small multiple of Id and check that)
+def is_pos_def(A, semi=True):
     # A is >=  iff  A+A^T >= 0
     M = A + A.T
     try:
@@ -107,6 +122,11 @@ def is_pos_def(A, semi=True):              # real matrices only
         return False
 
 
+# check if the matrix A is conditionally negative definite
+# uses the trick from math overflow: rows of "p" are a basis of
+# the orthogonal complement of the subspace of constant functions;
+# so p @ A @ p.T is a matrix of the form restricted to that complement
+# and then we test _minus that_ for positive (semi-)definiteness
 def is_cond_neg_def(A, semi=True):
     r = A.shape[0] - 1
     p = np.hstack([np.array([[1]]*r),-np.eye(r,dtype=np.int64)])
