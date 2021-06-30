@@ -72,7 +72,7 @@ def Wasserstein(metric, m1, m2):
 # (different) vertices
 # (not a sparse matrix)
 # (diagonal entries are left to be 0)
-def OR_get_full_curvature_matrix(G, p=0):
+def OR_get_full_curvature_matrix(G, p=1/2):
     metric = dict(nx.all_pairs_shortest_path_length(G))
 
     vtxs = sorted(G.nodes)
@@ -90,7 +90,7 @@ def OR_get_full_curvature_matrix(G, p=0):
 # compute the Ollivier-Ricci curvature between all pairs of
 # adjacent vertices
 # (returns a sparse matrix)
-def OR_get_edge_curvature_matrix(G, p=0):
+def OR_get_edge_curvature_matrix(G, p=1/2):
     metric = dict(nx.all_pairs_shortest_path_length(G))
 
     row_ind = []
@@ -130,6 +130,8 @@ def is_pos_def(A, semi=True):
 def is_cond_neg_def(A, semi=True):
     r = A.shape[0] - 1
     p = np.hstack([np.array([[1]]*r),-np.eye(r,dtype=np.int64)])
+    # (vals, _) = np.linalg.eigh(p@A@p.T)
+    # print(vals)
     return is_pos_def((-1) * p @ A @ p.T, semi)
 
 
@@ -139,40 +141,51 @@ def main(args, loglevel):
 
     ######### MESS HERE #########
 
-    G = nx.circular_ladder_graph(3)
+    # G = nx.circular_ladder_graph(4)
     # G = nx.petersen_graph()
     # G = nx.ladder_graph(4)
     # G = nx.star_graph(3)
     # G = nx.wheel_graph(5)
     # G = nx.complete_graph(5)
-    # G = nx.cycle_graph(6)
+    G = nx.cycle_graph(8)
     # G = nx.lollipop_graph(4,3)
-    # curv = OR_get_full_curvature_matrix(G)
-    curv = OR_get_edge_curvature_matrix(G).todense()
-    curv = np.around(curv,5)
 
-    print(curv)
+    # curv = OR_get_full_curvature_matrix(G)
+    # curv = OR_get_edge_curvature_matrix(G).todense()
+    # curv = np.around(curv,5)
+
+    # print(curv)
     # print(np.rint(3*curv))
     # print(np.linalg.eigh(curv))
 
-    r = curv.shape[0] - 1
-    p = np.hstack([np.array([[1]]*r),-np.eye(r,dtype=np.int64)])
-    restr_curv = p @ curv @ p.T  # 3* and rint just to get a nicer matrix
-    print("is curvature matrix conditionally negative definite: ", is_pos_def((-1)*restr_curv))
+    # r = curv.shape[0] - 1
+    # p = np.hstack([np.array([[1]]*r),-np.eye(r,dtype=np.int64)])
+    # restr_curv = p @ curv @ p.T  # 3* and rint just to get a nicer matrix
+    # print("is curvature matrix conditionally negative definite: ", is_pos_def((-1)*restr_curv))
     # print(restr_curv)
 
     # print(np.linalg.eigh(restr_curv))
-    print("curv eigvals: ", sorted(np.linalg.eigvals(curv)))
-    print("restricted curv eigvals: ", sorted(np.linalg.eigvals(restr_curv)))
+    # print("curv eigvals: ", sorted(np.linalg.eigvals(curv)))
+    # print("restricted curv eigvals: ", sorted(np.linalg.eigvals(restr_curv)))
 
     # print(is_cond_neg_def(-nx.laplacian_matrix(G),semi=False))
 
+    # L = nx.laplacian_matrix(G)
     # metric = dict(nx.all_pairs_shortest_path_length(G))
     # ma = OR_sphere_measure(G,0)
     # mb = OR_sphere_measure(G,1)
     # print(ma, mb)
     # print(Wasserstein(metric, ma, mb))
 
+    ## curvature
+    mat = OR_get_full_curvature_matrix(G)
+    print(mat)
+    print(is_cond_neg_def(mat))
+
+    np.set_printoptions(precision=3,suppress=True)  # suppress: try not to use sci notation
+    # (vals, vecs) = np.linalg.eigh(L.todense())
+    # print(vecs)
+    
     ## draw the graph
     # plt.subplot(121)
     # nx.draw(G,with_labels=True)
