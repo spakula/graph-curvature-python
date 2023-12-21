@@ -191,6 +191,9 @@ def main(args, loglevel):
     # nx.draw(G,with_labels=True)
     # plt.show()
 
+    # to get repl at this point:
+    # import code
+    # code.interact(local=locals())
 
 
 
